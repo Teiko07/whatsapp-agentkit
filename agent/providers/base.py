@@ -15,9 +15,11 @@ from fastapi import Request
 class MensajeEntrante:
     """Mensaje normalizado — mismo formato sin importar el proveedor."""
     telefono: str       # Número del remitente
-    texto: str          # Contenido del mensaje
+    texto: str          # Contenido del mensaje (vacío si es audio)
     mensaje_id: str     # ID único del mensaje
     es_propio: bool     # True si lo envió el agente (se ignora)
+    audio_bytes: bytes | None = None    # Bytes del audio si el mensaje es una nota de voz
+    nombre_audio: str = "audio.ogg"     # Nombre con extensión correcta para Whisper
 
 
 class ProveedorWhatsApp(ABC):

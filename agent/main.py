@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from agent.brain import generar_respuesta
 from agent.memory import inicializar_db, guardar_mensaje, obtener_historial
 from agent.providers import obtener_proveedor
+from agent.audio import transcribir_audio
 
 load_dotenv(override=True)
 
@@ -73,21 +74,40 @@ async def webhook_handler(request: Request):
         mensajes = await proveedor.parsear_webhook(request)
 
         for msg in mensajes:
-            # Ignorar mensajes propios o vacíos
-            if msg.es_propio or not msg.texto:
+            # Ignorar mensajes propios
+            if msg.es_propio:
                 continue
 
-            logger.info(f"Mensaje de {msg.telefono}: {msg.texto}")
+            # Si es una nota de voz, transcribirla con Whisper antes de pasar a Claude
+            texto_usuario = msg.texto
+            if msg.audio_bytes:
+                logger.info(f"Transcribiendo audio de {msg.telefono}...")
+                transcripcion = await transcribir_audio(msg.audio_bytes, msg.nombre_audio)
+                if transcripcion:
+                    # Marcamos en el historial que vino por audio (útil para Claude)
+                    texto_usuario = f"[Nota de voz transcrita] {transcripcion}"
+                else:
+                    # Si Whisper falla, avisamos al usuario amablemente
+                    await proveedor.enviar_mensaje(
+                        msg.telefono,
+                        "No he podido entender tu nota de voz 😟 ¿Puedes escribirme el mensaje o intentarlo de nuevo?",
+                    )
+                    continue
+
+            if not texto_usuario:
+                continue
+
+            logger.info(f"Mensaje de {msg.telefono}: {texto_usuario}")
 
             # Obtener historial ANTES de guardar el mensaje actual
             # (brain.py agrega el mensaje actual, evitando duplicados)
             historial = await obtener_historial(msg.telefono)
 
             # Generar respuesta con Claude
-            respuesta = await generar_respuesta(msg.texto, historial)
+            respuesta = await generar_respuesta(texto_usuario, historial)
 
             # Guardar mensaje del usuario Y respuesta del agente en memoria
-            await guardar_mensaje(msg.telefono, "user", msg.texto)
+            await guardar_mensaje(msg.telefono, "user", texto_usuario)
             await guardar_mensaje(msg.telefono, "assistant", respuesta)
 
             # Enviar respuesta por WhatsApp via el proveedor
