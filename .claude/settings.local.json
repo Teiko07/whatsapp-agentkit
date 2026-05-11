@@ -18,7 +18,8 @@
       "Write",
       "Edit",
       "Glob",
-      "Grep"
+      "Grep",
+      "Bash(python -c \"from agent.brain import generar_respuesta, cargar_system_prompt; from agent.memory import inicializar_db; from agent.providers import obtener_proveedor; from agent.tools import clasificar_urgencia, reservar_cita; print\\('OK - todos los modulos importan correctamente'\\); print\\('Modelo:', __import__\\('agent.brain', fromlist=['MODELO_CLAUDE']\\).MODELO_CLAUDE\\); print\\('System prompt:', len\\(cargar_system_prompt\\(\\)\\), 'caracteres'\\)\")"
     ]
   }
 }
