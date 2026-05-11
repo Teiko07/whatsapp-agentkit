@@ -1,0 +1,24 @@
+# Configuración del negocio — Generado por AgentKit
+negocio:
+  nombre: "Clínica Dental Sonrisa"
+  descripcion: "Clínica dental ubicada en Ripollet (Barcelona) que ofrece todo tipo de servicios dentales: limpiezas, ortodoncia (incluido Invisalign), implantes, blanqueamientos, endodoncias, prótesis, cirugía oral y odontopediatría. Atiende a adultos, niños y familias. Equipo de 5 profesionales liderado por la Dra. María López."
+  ubicacion: "Ripollet, Barcelona"
+  horario: "Lunes a Viernes 9:00-14:00 y 16:00-20:00, Sábados 10:00-14:00, Domingos cerrado"
+  telefono: "93 692 00 00"
+
+agente:
+  nombre: "Soporte Sonrisa"
+  tono: "amigable y casual, orientado a ventas"
+  casos_de_uso:
+    - "Responder preguntas frecuentes (precios, servicios, ubicación, horarios)"
+    - "Agendar citas y reservaciones"
+    - "Calificar y atender leads, cerrar ventas"
+    - "Tomar pedidos de tratamientos"
+    - "Soporte post-venta y seguimiento"
+    - "Triaje por urgencia (clasificar urgencias dentales)"
+
+metadata:
+  creado: "2026-05-11"
+  version: "1.0"
+  modelo_ia: "claude-haiku-4-5-20251001"
+  proveedor_whatsapp: "twilio"
