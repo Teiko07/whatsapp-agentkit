@@ -1,6 +1,8 @@
 import os
 import yaml
 import logging
+import httpx
+from datetime import datetime
 
 logger = logging.getLogger("agentkit")
 
@@ -37,6 +39,29 @@ def buscar_en_knowledge(consulta: str) -> str:
     return "\n---\n".join(resultados) if resultados else "No encontré información específica sobre eso."
 
 
-def registrar_lead(telefono: str, datos: dict) -> str:
-    logger.info(f"Lead calificado — tel:{telefono} datos:{datos}")
-    return "Lead registrado correctamente."
+async def registrar_lead_n8n(telefono: str, nombre: str, interes: str = "") -> str:
+    webhook_url = os.getenv("N8N_WEBHOOK_URL")
+    if not webhook_url:
+        logger.warning("N8N_WEBHOOK_URL no configurado — lead guardado solo en logs")
+        logger.info(f"Lead local — nombre:{nombre} tel:{telefono} interes:{interes}")
+        return "Lead registrado localmente."
+
+    payload = {
+        "nombre": nombre,
+        "telefono": telefono,
+        "interes": interes,
+        "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M")
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.post(webhook_url, json=payload)
+            if r.status_code in (200, 201):
+                logger.info(f"Lead enviado a n8n — nombre:{nombre} tel:{telefono}")
+                return "Lead registrado en CRM correctamente."
+            else:
+                logger.error(f"Error n8n webhook: {r.status_code} — {r.text}")
+                return "Lead registrado localmente (fallo webhook)."
+    except Exception as e:
+        logger.error(f"Excepcion llamando n8n: {e}")
+        return "Lead registrado localmente (excepcion)."
